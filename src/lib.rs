@@ -751,11 +751,11 @@ impl Chessboard {
     /// ```
     /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
-    /// assert_eq!(board.is_checked(true), false);
+    /// assert_eq!(board.is_checked(), false);
     /// ```
-    pub fn is_checked(&self, color: bool) -> bool {
-        let king = self.pieces[Piece::KING as usize] & self.get_color(color);
-        let enemy_attack_mask = self.get_attack_mask(color, self.all());
+    pub fn is_checked(&self) -> bool {
+        let king = self.pieces[Piece::KING as usize] & self.get_color(self.turn);
+        let enemy_attack_mask = self.get_attack_mask(self.turn, self.all());
 
         enemy_attack_mask & king != 0
     }
@@ -765,10 +765,10 @@ impl Chessboard {
     /// ```
     /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
-    /// assert_eq!(board.is_mate(true), false);
+    /// assert_eq!(board.is_mate(), false);
     /// ```
-    pub fn is_mate(&self, color: bool) -> bool {
-        self.is_checked(color) && !self.has_moves()
+    pub fn is_mate(&self) -> bool {
+        self.is_checked() && !self.has_moves()
     }
 
     /// Returns if the current position is a stalemate.
@@ -776,10 +776,10 @@ impl Chessboard {
     /// ```
     /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
-    /// assert_eq!(board.is_stalemate(true), false);
+    /// assert_eq!(board.is_stalemate(), false);
     /// ```
-    pub fn is_stalemate(&self, color: bool) -> bool {
-        !self.is_checked(color) && !self.has_moves()
+    pub fn is_stalemate(&self) -> bool {
+        !self.is_checked() && !self.has_moves()
     }
 
     /// Returns if the current position is a fifty moves rule.
@@ -1423,7 +1423,7 @@ mod tests {
         let board =
             Chessboard::from_fen("r1bqkbnr/pppp1Qpp/8/4p3/1nB1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4");
 
-        assert_eq!(board.is_mate(false), true);
+        assert_eq!(board.is_mate(), true);
     }
 
     #[test]
@@ -1461,7 +1461,7 @@ mod tests {
         println!("{}", board.get_fen());
         println!("{}", board.ascii());
 
-        assert!(board.is_mate(false));
+        assert!(board.is_mate());
     }
 
     #[test]
@@ -1570,7 +1570,7 @@ mod tests {
 
         assert_eq!(board.get_fen(), "2Q3k1/4R3/8/8/8/8/8/6K1 b - - 0 1");
 
-        assert!(board.is_mate(false));
+        assert!(board.is_mate());
     }
 
     #[test]
