@@ -18,7 +18,7 @@ Created for my next project of turning PGN into video. I wanted to create the ch
 ## Usage
 
 ```rs
-use chess_rs::Chessboard;
+use w_chess::Chessboard;
 
 fn main() {
     let board = Chessboard::new();
