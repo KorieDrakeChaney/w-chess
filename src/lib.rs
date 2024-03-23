@@ -37,7 +37,7 @@ impl Chessboard {
     /// Returns a chessboard with the starting position.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let mut board = Chessboard::new();
     /// board.move_to("e4");
     /// ```
@@ -52,7 +52,7 @@ impl Chessboard {
     /// Returns a chessboard with the position from the FEN string.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let mut board = Chessboard::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     /// board.move_to("e4");
     /// ```
@@ -629,7 +629,7 @@ impl Chessboard {
     /// Returns the FEN string of the current position.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// assert_eq!(board.get_fen(), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     /// ```
@@ -749,7 +749,7 @@ impl Chessboard {
     /// Returns if the current position is checked.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// assert_eq!(board.is_checked(true), false);
     /// ```
@@ -763,7 +763,7 @@ impl Chessboard {
     /// Returns if the current position is a checkmate.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// assert_eq!(board.is_mate(true), false);
     /// ```
@@ -774,7 +774,7 @@ impl Chessboard {
     /// Returns if the current position is a stalemate.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// assert_eq!(board.is_stalemate(true), false);
     /// ```
@@ -785,7 +785,7 @@ impl Chessboard {
     /// Returns if the current position is a fifty moves rule.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// assert_eq!(board.is_fifty_moves(), false);
     /// ```
@@ -796,7 +796,7 @@ impl Chessboard {
     /// Returns if the current position is a threefold repetition.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// assert_eq!(board.is_threefold_repetition(), false);
     /// ``
@@ -856,7 +856,7 @@ impl Chessboard {
     /// Moves a piece to the given square in SAN format.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let mut board = Chessboard::new();
     /// board.move_to("e4");
     /// ```
@@ -1272,7 +1272,7 @@ impl Chessboard {
     /// Returns the ASCII representation of the current position.
     /// # Examples
     /// ```
-    /// use chessrs::Chessboard;
+    /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// println!("{}", board.ascii());
     /// ```

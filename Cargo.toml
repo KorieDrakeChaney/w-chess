@@ -1,9 +1,9 @@
 [package]
-name = "chessrs"
+name = "w-chess"
 version = "0.1.0"
 edition = "2021"
 authors = ["Korie Drake Chaney"]
-repository = "https://github.com/KorieDrakeChaney/chessrs"
+repository = "https://github.com/KorieDrakeChaney/w-chess"
 keywords = ["chess"]
 readme = "README.md"
 description = "A chess library for Rust."

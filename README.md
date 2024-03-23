@@ -1,4 +1,4 @@
-# ChessRS
+# w-chess
 
 Created for my next project of turning PGN into video. I wanted to create the chess library, so that I have full control. Of course, anyone can use this or peek through.
 ⭐ Star if you like ⭐
