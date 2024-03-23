@@ -1343,6 +1343,12 @@ impl Chessboard {
     }
 }
 
+impl std::fmt::Display for Chessboard {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.ascii())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
