@@ -991,7 +991,10 @@ impl Chessboard {
                     let piece = self.get_piece(from_square);
                     let color = self.white & from_square != 0;
 
-                    if self.turn != color {
+                    if self.turn != color
+                        || (piece != valid_san.piece)
+                        || (valid_san.from > 0 && from_square & valid_san.from == 0)
+                    {
                         continue;
                     }
 
@@ -1065,8 +1068,10 @@ impl Chessboard {
             } else {
                 'search: for (&from_square, &legal_moves) in self.legal_moves.iter() {
                     let piece = self.get_piece(from_square);
+                    let color = self.white & from_square != 0;
 
-                    if (piece != valid_san.piece)
+                    if self.turn != color
+                        || (piece != valid_san.piece)
                         || (valid_san.from > 0 && from_square & valid_san.from == 0)
                     {
                         continue;

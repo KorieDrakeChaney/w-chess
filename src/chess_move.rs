@@ -213,6 +213,12 @@ impl<'a> SanMove<'a> {
             to = std::mem::replace(&mut from, 0);
         }
 
+        if piece == Piece::PAWN {
+            if to & RANK_8 != 0 || to & RANK_1 != 0 {
+                promotion = Some(Piece::QUEEN);
+            }
+        }
+
         Ok(Self {
             san,
             piece,
@@ -308,6 +314,14 @@ mod tests {
         assert_eq!(san_move.to, 1 << Square::D6 as u64);
         assert_eq!(san_move.from, FILE_E);
         assert_eq!(san_move.promotion, None);
+
+        let san = "e8";
+        let san_move = SanMove::parse(san).unwrap();
+        assert_eq!(san_move.san, "e8");
+        assert_eq!(san_move.piece, Piece::PAWN);
+        assert_eq!(san_move.to, 1 << Square::E8 as u64);
+        assert_eq!(san_move.from, 0);
+        assert_eq!(san_move.promotion, Some(Piece::QUEEN));
     }
 }
 
