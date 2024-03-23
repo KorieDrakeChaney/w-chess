@@ -5,6 +5,6 @@ edition = "2021"
 authors = ["Korie Drake Chaney"]
 repository = "https://github.com/KorieDrakeChaney/chessrs"
 keywords = ["chess"]
-
+readme = "README.md"
 
 [dependencies]
