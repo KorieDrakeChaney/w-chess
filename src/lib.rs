@@ -34,6 +34,13 @@ pub struct Chessboard {
 }
 
 impl Chessboard {
+    /// Returns a chessboard with the starting position.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let mut board = Chessboard::new();
+    /// board.move_to("e4");
+    /// ```
     pub fn new() -> Self {
         let mut board = Self::load_fen(START_FEN);
 
@@ -42,6 +49,13 @@ impl Chessboard {
         board
     }
 
+    /// Returns a chessboard with the position from the FEN string.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let mut board = Chessboard::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    /// board.move_to("e4");
+    /// ```
     pub fn from_fen(fen: &str) -> Self {
         let mut board = Self::load_fen(fen);
 
@@ -612,6 +626,13 @@ impl Chessboard {
         }
     }
 
+    /// Returns the FEN string of the current position.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let board = Chessboard::new();
+    /// assert_eq!(board.get_fen(), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    /// ```
     pub fn get_fen(&self) -> String {
         let mut fen = String::new();
         for rank in 0..8 {
@@ -725,6 +746,13 @@ impl Chessboard {
         )
     }
 
+    /// Returns if the current position is checked.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let board = Chessboard::new();
+    /// assert_eq!(board.is_checked(true), false);
+    /// ```
     pub fn is_checked(&self, color: bool) -> bool {
         let king = self.pieces[Piece::KING as usize] & self.get_color(color);
         let enemy_attack_mask = self.get_attack_mask(color, self.all());
@@ -732,18 +760,46 @@ impl Chessboard {
         enemy_attack_mask & king != 0
     }
 
+    /// Returns if the current position is a checkmate.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let board = Chessboard::new();
+    /// assert_eq!(board.is_mate(true), false);
+    /// ```
     pub fn is_mate(&self, color: bool) -> bool {
         self.is_checked(color) && !self.has_moves()
     }
 
+    /// Returns if the current position is a stalemate.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let board = Chessboard::new();
+    /// assert_eq!(board.is_stalemate(true), false);
+    /// ```
     pub fn is_stalemate(&self, color: bool) -> bool {
         !self.is_checked(color) && !self.has_moves()
     }
 
+    /// Returns if the current position is a fifty moves rule.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let board = Chessboard::new();
+    /// assert_eq!(board.is_fifty_moves(), false);
+    /// ```
     pub fn is_fifty_moves(&self) -> bool {
         self.half_move >= 100
     }
 
+    /// Returns if the current position is a threefold repetition.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let board = Chessboard::new();
+    /// assert_eq!(board.is_threefold_repetition(), false);
+    /// ``
     pub fn is_threefold_repetition(&self) -> bool {
         let mut max = 0;
 
@@ -797,6 +853,13 @@ impl Chessboard {
         enemy_attack_mask
     }
 
+    /// Moves a piece to the given square in SAN format.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let mut board = Chessboard::new();
+    /// board.move_to("e4");
+    /// ```
     pub fn move_to(&mut self, san: &str) {
         let mut san = SanMove::parse(san);
 
@@ -1195,7 +1258,7 @@ impl Chessboard {
         }
     }
 
-    pub fn get_squares(bitboard: u64) -> Vec<u64> {
+    fn get_squares(bitboard: u64) -> Vec<u64> {
         let mut squares = Vec::new();
         for i in 0..64 {
             let square = 1 << i;
@@ -1206,31 +1269,69 @@ impl Chessboard {
         squares
     }
 
+    /// Returns the ASCII representation of the current position.
+    /// # Examples
+    /// ```
+    /// use chessrs::Chessboard;
+    /// let board = Chessboard::new();
+    /// println!("{}", board.ascii());
+    /// ```
     pub fn ascii(&self) -> String {
         let mut board = String::new();
         for rank in 0..8 {
             for file in 0..8 {
                 let square = 1 << 56 - rank as u64 * 8 + file;
                 let piece = self.get_piece(square);
+                let color = self.white & square != 0;
                 match piece {
-                    Piece::PAWN => {
-                        board.push('P');
-                    }
-                    Piece::KNIGHT => {
-                        board.push('N');
-                    }
-                    Piece::BISHOP => {
-                        board.push('B');
-                    }
-                    Piece::ROOK => {
-                        board.push('R');
-                    }
-                    Piece::QUEEN => {
-                        board.push('Q');
-                    }
-                    Piece::KING => {
-                        board.push('K');
-                    }
+                    Piece::PAWN => match color {
+                        true => {
+                            board.push('P');
+                        }
+                        false => {
+                            board.push('p');
+                        }
+                    },
+                    Piece::KNIGHT => match color {
+                        true => {
+                            board.push('N');
+                        }
+                        false => {
+                            board.push('n');
+                        }
+                    },
+                    Piece::BISHOP => match color {
+                        true => {
+                            board.push('B');
+                        }
+                        false => {
+                            board.push('b');
+                        }
+                    },
+                    Piece::ROOK => match color {
+                        true => {
+                            board.push('R');
+                        }
+                        false => {
+                            board.push('r');
+                        }
+                    },
+                    Piece::QUEEN => match color {
+                        true => {
+                            board.push('Q');
+                        }
+                        false => {
+                            board.push('q');
+                        }
+                    },
+                    Piece::KING => match color {
+                        true => {
+                            board.push('K');
+                        }
+                        false => {
+                            board.push('k');
+                        }
+                    },
                     _ => {
                         board.push('.');
                     }
