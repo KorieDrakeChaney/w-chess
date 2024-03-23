@@ -1346,6 +1346,37 @@ impl Chessboard {
         }
         board
     }
+
+    /// Returns the legal moves of the current position.
+    /// # Examples
+    /// ```
+    /// use w_chess::Chessboard;
+    /// let board = Chessboard::new();
+    /// let legal_moves = board.legal_moves();
+    /// ```
+    pub fn legal_moves(&self) -> Vec<String> {
+        let mut legal_moves = Vec::new();
+        for (&square, &moves) in self.legal_moves.iter() {
+            let piece = self.get_piece(square);
+
+            let prefix = match piece {
+                Piece::KING => Some('K'),
+                Piece::QUEEN => Some('Q'),
+                Piece::ROOK => Some('R'),
+                Piece::BISHOP => Some('B'),
+                Piece::KNIGHT => Some('N'),
+                _ => None,
+            };
+
+            for square in Chessboard::get_squares(moves) {
+                match prefix {
+                    Some(p) => legal_moves.push(format!("{}{}", p, Square::from(square))),
+                    None => legal_moves.push(Square::from(square).to_string()),
+                }
+            }
+        }
+        legal_moves
+    }
 }
 
 impl std::fmt::Display for Chessboard {
@@ -1540,5 +1571,13 @@ mod tests {
         assert_eq!(board.get_fen(), "2Q3k1/4R3/8/8/8/8/8/6K1 b - - 0 1");
 
         assert!(board.is_mate(false));
+    }
+
+    #[test]
+    fn test_legal_moves() {
+        let board = Chessboard::new();
+
+        let legal_moves = board.legal_moves();
+        println!("{:?}", legal_moves);
     }
 }
