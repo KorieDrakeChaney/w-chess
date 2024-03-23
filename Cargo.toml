@@ -2,7 +2,9 @@
 name = "chessrs"
 version = "0.1.0"
 edition = "2021"
+authors = ["Korie Drake Chaney"]
+repository = "https://github.com/KorieDrakeChaney/chessrs"
+keywords = ["chess"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
