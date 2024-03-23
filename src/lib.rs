@@ -799,7 +799,7 @@ impl Chessboard {
     /// use w_chess::Chessboard;
     /// let board = Chessboard::new();
     /// assert_eq!(board.is_threefold_repetition(), false);
-    /// ``
+    /// ```
     pub fn is_threefold_repetition(&self) -> bool {
         let mut max = 0;
 
