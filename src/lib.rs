@@ -1316,65 +1316,70 @@ impl Chessboard {
     /// ```
     pub fn ascii(&self) -> String {
         let mut board = String::new();
-        for rank in 0..8 {
-            for file in 0..8 {
-                let square = 1 << 56 - rank as u64 * 8 + file;
+        for rank in 0_u64..8 {
+            for file in 0_u64..8 {
+                let square = 1 << 56 - rank * 8 + file;
                 let piece = self.get_piece(square);
-                let color = self.white & square != 0;
-                match piece {
-                    Piece::PAWN => match color {
-                        true => {
-                            board.push('P');
-                        }
-                        false => {
-                            board.push('p');
-                        }
-                    },
-                    Piece::KNIGHT => match color {
-                        true => {
-                            board.push('N');
-                        }
-                        false => {
-                            board.push('n');
-                        }
-                    },
-                    Piece::BISHOP => match color {
-                        true => {
-                            board.push('B');
-                        }
-                        false => {
-                            board.push('b');
-                        }
-                    },
-                    Piece::ROOK => match color {
-                        true => {
-                            board.push('R');
-                        }
-                        false => {
-                            board.push('r');
-                        }
-                    },
-                    Piece::QUEEN => match color {
-                        true => {
-                            board.push('Q');
-                        }
-                        false => {
-                            board.push('q');
-                        }
-                    },
-                    Piece::KING => match color {
-                        true => {
-                            board.push('K');
-                        }
-                        false => {
-                            board.push('k');
-                        }
-                    },
-                    _ => {
-                        board.push('.');
+
+                if square & self.all() != 0 {
+                    let color = self.white & square != 0;
+                    match piece {
+                        Piece::PAWN => match color {
+                            true => {
+                                board.push('\u{2659}');
+                            }
+                            false => {
+                                board.push('\u{265F}');
+                            }
+                        },
+                        Piece::KNIGHT => match color {
+                            true => {
+                                board.push('\u{2658}');
+                            }
+                            false => {
+                                board.push('\u{265E}');
+                            }
+                        },
+                        Piece::BISHOP => match color {
+                            true => {
+                                board.push('\u{2657}');
+                            }
+                            false => {
+                                board.push('\u{265D}');
+                            }
+                        },
+                        Piece::ROOK => match color {
+                            true => {
+                                board.push('\u{2656}');
+                            }
+                            false => {
+                                board.push('\u{265C}');
+                            }
+                        },
+                        Piece::QUEEN => match color {
+                            true => {
+                                board.push('\u{2655}');
+                            }
+                            false => {
+                                board.push('\u{265B}');
+                            }
+                        },
+                        Piece::KING => match color {
+                            true => {
+                                board.push('\u{2654}');
+                            }
+                            false => {
+                                board.push('\u{265A}');
+                            }
+                        },
+                        _ => {}
                     }
+                } else {
+                    board.push('\u{25A1}');
                 }
+                board.push(' ');
             }
+
             board.push('\n');
         }
         board
