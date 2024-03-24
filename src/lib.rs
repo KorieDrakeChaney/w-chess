@@ -30,7 +30,6 @@ pub struct Chessboard {
     legal_moves: HashMap<u64, u64>,
 
     turn: bool,
-    // 0: white king side, 1: white queen side, 2: black king side, 3: black queen side
     castle_rights: [bool; 4],
     en_passant_square: Option<u64>,
     half_move: u32,
@@ -38,6 +37,7 @@ pub struct Chessboard {
 
     board_repetitions: HashMap<String, usize>,
 
+    /// The history of the game in SAN format.
     pub history: Vec<ChessMove>,
 }
 
@@ -874,150 +874,141 @@ impl Chessboard {
         let mut has_moved = false;
         if let Ok(ref mut valid_san) = san {
             let to_square = valid_san.to;
-            if valid_san.castling.is_some()
-                || Piece::KING == valid_san.piece
-                    && ((self.turn
-                        && ((self.castle_rights[0]
-                            && to_square & WHITE_KING_SIDE_CASTLE_SQUARE != 0)
-                            || (self.castle_rights[1]
-                                && to_square & WHITE_QUEEN_SIDE_CASTLE_SQUARE != 0)))
-                        || (!self.turn
-                            && ((self.castle_rights[2]
-                                && to_square & BLACK_KING_SIDE_CASTLE_SQUARE != 0)
-                                || (self.castle_rights[3]
-                                    && to_square & BLACK_QUEEN_SIDE_CASTLE_SQUARE != 0))))
+            if valid_san.piece == Piece::KING
+                && ((self.turn
+                    && self.castle_rights[0]
+                    && to_square & WHITE_KING_SIDE_CASTLE_SQUARE != 0)
+                    || (!self.turn
+                        && self.castle_rights[2]
+                        && to_square & BLACK_KING_SIDE_CASTLE_SQUARE != 0))
+                || valid_san.castling == Some(CastlingType::KingSide)
             {
-                let castling = match valid_san.castling.take() {
-                    Some(castling) => castling,
-                    None => {
-                        if to_square & WHITE_KING_SIDE_CASTLE_SQUARE != 0
-                            || to_square & BLACK_KING_SIDE_CASTLE_SQUARE != 0
-                        {
-                            CastlingType::KingSide
-                        } else {
-                            CastlingType::QueenSide
+                match self.turn {
+                    true => {
+                        if let Some(legal_moves) = self.legal_moves.get(&Square::E1.into()) {
+                            let g1: u64 = Square::G1.into();
+
+                            if legal_moves & g1 != 0 {
+                                self.half_move += 1;
+                                let e1: u64 = Square::E1.into();
+
+                                self.pieces[Piece::KING as usize] ^= e1;
+                                self.pieces[Piece::KING as usize] |= g1;
+                                self.white ^= e1;
+                                self.white |= g1;
+
+                                let f1: u64 = Square::F1.into();
+                                let h1: u64 = Square::H1.into();
+
+                                self.pieces[Piece::ROOK as usize] ^= h1;
+                                self.pieces[Piece::ROOK as usize] |= f1;
+                                self.white ^= h1;
+                                self.white |= f1;
+
+                                self.turn = !self.turn;
+                                self.castle_rights[0] = false;
+                                self.castle_rights[1] = false;
+                                has_moved = true;
+                            }
                         }
                     }
-                };
-                match castling {
-                    CastlingType::KingSide => match self.turn {
-                        true => {
-                            if let Some(legal_moves) = self.legal_moves.get(&Square::E1.into()) {
-                                let g1: u64 = Square::G1.into();
+                    false => {
+                        if let Some(legal_moves) = self.legal_moves.get(&Square::E8.into()) {
+                            let g8: u64 = Square::G8.into();
 
-                                if legal_moves & g1 != 0 {
-                                    self.half_move += 1;
-                                    let e1: u64 = Square::E1.into();
+                            if legal_moves & g8 != 0 {
+                                self.half_move += 1;
+                                let e8: u64 = Square::E8.into();
 
-                                    self.pieces[Piece::KING as usize] ^= e1;
-                                    self.pieces[Piece::KING as usize] |= g1;
-                                    self.white ^= e1;
-                                    self.white |= g1;
+                                self.pieces[Piece::KING as usize] ^= e8;
+                                self.pieces[Piece::KING as usize] |= g8;
+                                self.black ^= e8;
+                                self.black |= g8;
 
-                                    let f1: u64 = Square::F1.into();
-                                    let h1: u64 = Square::H1.into();
+                                let f8: u64 = Square::F8.into();
+                                let h8: u64 = Square::H8.into();
 
-                                    self.pieces[Piece::ROOK as usize] ^= h1;
-                                    self.pieces[Piece::ROOK as usize] |= f1;
-                                    self.white ^= h1;
-                                    self.white |= f1;
+                                self.pieces[Piece::ROOK as usize] ^= h8;
+                                self.pieces[Piece::ROOK as usize] |= f8;
+                                self.black ^= h8;
+                                self.black |= f8;
 
-                                    self.turn = !self.turn;
-                                    self.castle_rights[0] = false;
-                                    self.castle_rights[1] = false;
-                                    has_moved = true;
-                                }
+                                self.turn = !self.turn;
+                                self.full_move += 1;
+                                self.castle_rights[2] = false;
+                                self.castle_rights[3] = false;
+                                has_moved = true;
                             }
                         }
-                        false => {
-                            if let Some(legal_moves) = self.legal_moves.get(&Square::E8.into()) {
-                                let g8: u64 = Square::G8.into();
+                    }
+                }
+            } else if valid_san.piece == Piece::KING
+                && ((self.turn
+                    && self.castle_rights[1]
+                    && to_square & WHITE_QUEEN_SIDE_CASTLE_SQUARE != 0)
+                    || (!self.turn
+                        && self.castle_rights[3]
+                        && to_square & BLACK_QUEEN_SIDE_CASTLE_SQUARE != 0))
+                || valid_san.castling == Some(CastlingType::QueenSide)
+            {
+                match self.turn {
+                    true => {
+                        if let Some(legal_moves) = self.legal_moves.get(&Square::E1.into()) {
+                            let c1: u64 = Square::C1.into();
 
-                                if legal_moves & g8 != 0 {
-                                    self.half_move += 1;
-                                    let e8: u64 = Square::E8.into();
+                            if legal_moves & c1 != 0 {
+                                self.half_move += 1;
+                                let e1: u64 = Square::E1.into();
 
-                                    self.pieces[Piece::KING as usize] ^= e8;
-                                    self.pieces[Piece::KING as usize] |= g8;
-                                    self.black ^= e8;
-                                    self.black |= g8;
+                                self.pieces[Piece::KING as usize] ^= e1;
+                                self.pieces[Piece::KING as usize] |= c1;
+                                self.white ^= e1;
+                                self.white |= c1;
 
-                                    let f8: u64 = Square::F8.into();
-                                    let h8: u64 = Square::H8.into();
+                                let a1: u64 = Square::A1.into();
+                                let d1: u64 = Square::D1.into();
 
-                                    self.pieces[Piece::ROOK as usize] ^= h8;
-                                    self.pieces[Piece::ROOK as usize] |= f8;
-                                    self.black ^= h8;
-                                    self.black |= f8;
+                                self.pieces[Piece::ROOK as usize] ^= a1;
+                                self.pieces[Piece::ROOK as usize] |= d1;
+                                self.white ^= a1;
+                                self.white |= d1;
 
-                                    self.turn = !self.turn;
-                                    self.full_move += 1;
-                                    self.castle_rights[2] = false;
-                                    self.castle_rights[3] = false;
-                                    has_moved = true;
-                                }
+                                self.turn = !self.turn;
+                                self.castle_rights[0] = false;
+                                self.castle_rights[1] = false;
+                                has_moved = true;
                             }
                         }
-                    },
-                    CastlingType::QueenSide => match self.turn {
-                        true => {
-                            if let Some(legal_moves) = self.legal_moves.get(&Square::E1.into()) {
-                                let c1: u64 = Square::C1.into();
+                    }
+                    false => {
+                        if let Some(legal_moves) = self.legal_moves.get(&Square::E8.into()) {
+                            let c8: u64 = Square::C8.into();
 
-                                if legal_moves & c1 != 0 {
-                                    self.half_move += 1;
-                                    let e1: u64 = Square::E1.into();
+                            if legal_moves & c8 != 0 {
+                                self.half_move += 1;
+                                let e8: u64 = Square::E8.into();
 
-                                    self.pieces[Piece::KING as usize] ^= e1;
-                                    self.pieces[Piece::KING as usize] |= c1;
-                                    self.white ^= e1;
-                                    self.white |= c1;
+                                self.pieces[Piece::KING as usize] ^= e8;
+                                self.pieces[Piece::KING as usize] |= c8;
+                                self.black ^= e8;
+                                self.black |= c8;
 
-                                    let a1: u64 = Square::A1.into();
-                                    let d1: u64 = Square::D1.into();
+                                let d8: u64 = Square::D8.into();
+                                let a8: u64 = Square::A8.into();
 
-                                    self.pieces[Piece::ROOK as usize] ^= a1;
-                                    self.pieces[Piece::ROOK as usize] |= d1;
-                                    self.white ^= a1;
-                                    self.white |= d1;
+                                self.pieces[Piece::ROOK as usize] ^= a8;
+                                self.pieces[Piece::ROOK as usize] |= d8;
+                                self.black ^= a8;
+                                self.black |= d8;
 
-                                    self.turn = !self.turn;
-                                    self.castle_rights[0] = false;
-                                    self.castle_rights[1] = false;
-                                    has_moved = true;
-                                }
+                                self.turn = !self.turn;
+                                self.full_move += 1;
+                                self.castle_rights[2] = false;
+                                self.castle_rights[3] = false;
+                                has_moved = true;
                             }
                         }
-                        false => {
-                            if let Some(legal_moves) = self.legal_moves.get(&Square::E8.into()) {
-                                let c8: u64 = Square::C8.into();
-
-                                if legal_moves & c8 != 0 {
-                                    self.half_move += 1;
-                                    let e8: u64 = Square::E8.into();
-
-                                    self.pieces[Piece::KING as usize] ^= e8;
-                                    self.pieces[Piece::KING as usize] |= c8;
-                                    self.black ^= e8;
-                                    self.black |= c8;
-
-                                    let d8: u64 = Square::D8.into();
-                                    let a8: u64 = Square::A8.into();
-
-                                    self.pieces[Piece::ROOK as usize] ^= a8;
-                                    self.pieces[Piece::ROOK as usize] |= d8;
-                                    self.black ^= a8;
-                                    self.black |= d8;
-
-                                    self.turn = !self.turn;
-                                    self.full_move += 1;
-                                    self.castle_rights[2] = false;
-                                    self.castle_rights[3] = false;
-                                    has_moved = true;
-                                }
-                            }
-                        }
-                    },
+                    }
                 }
             } else if let Some(promotion_piece) = valid_san.promotion {
                 'search: for (&from_square, &legal_moves) in self.legal_moves.iter() {
@@ -1407,6 +1398,30 @@ impl Chessboard {
             };
 
             for square in Chessboard::get_squares(moves) {
+                match piece {
+                    Piece::KING => {
+                        if (self.turn
+                            && self.castle_rights[0]
+                            && square & WHITE_KING_SIDE_CASTLE_SQUARE != 0)
+                            || (!self.turn
+                                && self.castle_rights[2]
+                                && square & BLACK_KING_SIDE_CASTLE_SQUARE != 0)
+                        {
+                            legal_moves.push("O-O".to_string());
+                            continue;
+                        } else if (self.turn
+                            && self.castle_rights[1]
+                            && square & WHITE_QUEEN_SIDE_CASTLE_SQUARE != 0)
+                            || (!self.turn
+                                && self.castle_rights[3]
+                                && square & BLACK_QUEEN_SIDE_CASTLE_SQUARE != 0)
+                        {
+                            legal_moves.push("O-O-O".to_string());
+                            continue;
+                        }
+                    }
+                    _ => {}
+                }
                 match prefix {
                     Some(p) => legal_moves.push(format!("{}{}", p, Square::from(square))),
                     None => legal_moves.push(Square::from(square).to_string()),
@@ -1519,6 +1534,8 @@ mod tests {
     fn castle_white_king_side() {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPP2P/RNBQK2R w KQkq - 0 1";
         let mut board = Chessboard::from_fen(fen);
+
+        println!("{:?}", board.legal_moves());
 
         board.move_to("O-O"); // or Kg1
 
