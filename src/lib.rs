@@ -7,7 +7,15 @@ use chess_move::{CastlingType, SanMove};
 pub use piece::Piece;
 use std::collections::HashMap;
 
-pub(crate) use square::*;
+use square::{
+    BLACK_KING_SIDE_CASTLE, BLACK_KING_SIDE_CASTLE_SQUARE, BLACK_QUEEN_SIDE_CASTLE,
+    BLACK_QUEEN_SIDE_CASTLE_SQUARE, FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H,
+    RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, START_FEN,
+    WHITE_KING_SIDE_CASTLE, WHITE_KING_SIDE_CASTLE_SQUARE, WHITE_QUEEN_SIDE_CASTLE,
+    WHITE_QUEEN_SIDE_CASTLE_SQUARE,
+};
+
+pub use square::Square;
 
 #[derive(Debug)]
 pub struct Chessboard {
@@ -449,11 +457,11 @@ impl Chessboard {
                             let g8: u64 = Square::G8.into();
                             let c8: u64 = Square::C8.into();
                             if potential_square & g8 != 0 {
-                                if enemy_attack_mask & BLACK_KING_SIDE_CASTLE == 0 {
+                                if enemy_attack_mask & BLACK_KING_SIDE_CASTLE_SQUARE == 0 {
                                     legal_moves |= potential_square;
                                 }
                             } else if potential_square & c8 != 0 {
-                                if enemy_attack_mask & BLACK_QUEEN_SIDE_CASTLE == 0 {
+                                if enemy_attack_mask & BLACK_QUEEN_SIDE_CASTLE_SQUARE == 0 {
                                     legal_moves |= potential_square;
                                 }
                             } else {
@@ -865,7 +873,32 @@ impl Chessboard {
 
         let mut has_moved = false;
         if let Ok(ref mut valid_san) = san {
-            if let Some(castling) = valid_san.castling {
+            let to_square = valid_san.to;
+            if valid_san.castling.is_some()
+                || Piece::KING == valid_san.piece
+                    && ((self.turn
+                        && ((self.castle_rights[0]
+                            && to_square & WHITE_KING_SIDE_CASTLE_SQUARE != 0)
+                            || (self.castle_rights[1]
+                                && to_square & WHITE_QUEEN_SIDE_CASTLE_SQUARE != 0)))
+                        || (!self.turn
+                            && ((self.castle_rights[2]
+                                && to_square & BLACK_KING_SIDE_CASTLE_SQUARE != 0)
+                                || (self.castle_rights[3]
+                                    && to_square & BLACK_QUEEN_SIDE_CASTLE_SQUARE != 0))))
+            {
+                let castling = match valid_san.castling.take() {
+                    Some(castling) => castling,
+                    None => {
+                        if to_square & WHITE_KING_SIDE_CASTLE_SQUARE != 0
+                            || to_square & BLACK_KING_SIDE_CASTLE_SQUARE != 0
+                        {
+                            CastlingType::KingSide
+                        } else {
+                            CastlingType::QueenSide
+                        }
+                    }
+                };
                 match castling {
                     CastlingType::KingSide => match self.turn {
                         true => {
@@ -1001,7 +1034,7 @@ impl Chessboard {
                     match piece {
                         Piece::PAWN => {
                             for valid_square in Chessboard::get_squares(legal_moves) {
-                                if valid_square & valid_san.to != 0 {
+                                if valid_square & to_square != 0 {
                                     self.half_move = 0;
 
                                     let before = self.get_fen();
@@ -1078,7 +1111,7 @@ impl Chessboard {
                     }
 
                     for valid_square in Chessboard::get_squares(legal_moves) {
-                        if valid_square & valid_san.to != 0 {
+                        if valid_square & to_square != 0 {
                             let before = self.get_fen();
                             let mut captured = None;
 
@@ -1400,12 +1433,12 @@ mod tests {
                 continue;
             }
             println!(
-                "piece : {}, square:{}",
+                "{} on {}",
                 board.get_piece(square.into()),
-                square
+                Square::from(square)
             );
             for square in Chessboard::get_squares(valid_move) {
-                println!("valid_move:{}", square);
+                println!("valid_move: {}", Square::from(square));
             }
         }
     }
@@ -1469,7 +1502,7 @@ mod tests {
         let fen = "rnb1kbnr/pp2pppp/8/1q6/8/8/P3PPPP/R3K1NR w KQkq - 0 1";
         let mut board = Chessboard::from_fen(fen);
 
-        board.move_to("O-O-O");
+        board.move_to("O-O-O"); // or Kc1
 
         assert_eq!(
             board.get_fen(),
@@ -1482,7 +1515,7 @@ mod tests {
         let fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPP2P/RNBQK2R w KQkq - 0 1";
         let mut board = Chessboard::from_fen(fen);
 
-        board.move_to("O-O");
+        board.move_to("O-O"); // or Kg1
 
         assert_eq!(
             board.get_fen(),
@@ -1495,7 +1528,7 @@ mod tests {
         let fen = "r3kbnr/p3pppp/8/8/1Q6/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1";
         let mut board = Chessboard::from_fen(fen);
 
-        board.move_to("O-O-O");
+        board.move_to("O-O-O"); // Kc8
 
         assert_eq!(
             board.get_fen(),
@@ -1508,7 +1541,7 @@ mod tests {
         let fen = "rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1";
         let mut board = Chessboard::from_fen(fen);
 
-        board.move_to("O-O");
+        board.move_to("O-O"); // Kg8
 
         assert_eq!(
             board.get_fen(),
@@ -1535,7 +1568,7 @@ mod tests {
     }
 
     #[test]
-    fn test_three_fold() {
+    fn test_threefold() {
         let mut board = Chessboard::new();
 
         board.move_to("Nf3");
