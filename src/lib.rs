@@ -1523,6 +1523,7 @@ mod tests {
         let mut board = Chessboard::from_fen(fen);
 
         board.move_to("O-O-O"); // or Kc1
+        println!("{}", board);
 
         assert_eq!(
             board.get_fen(),
@@ -1578,8 +1579,8 @@ mod tests {
         let mut board = Chessboard::from_fen(fen);
 
         board.move_to("d4");
+        println!("{}", board.ascii());
         board.move_to("d3");
-
         println!("{}", board.ascii());
         println!("{:?}", board.history);
 

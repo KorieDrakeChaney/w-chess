@@ -214,7 +214,7 @@ impl<'a> SanMove<'a> {
         }
 
         if piece == Piece::PAWN {
-            if to & RANK_8 != 0 || to & RANK_1 != 0 {
+            if (to & RANK_8 != 0 || to & RANK_1 != 0) && promotion.is_none() {
                 promotion = Some(Piece::QUEEN);
             }
         }
